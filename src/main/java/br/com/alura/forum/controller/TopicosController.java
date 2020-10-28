@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,11 +47,9 @@ public class TopicosController {
 
 	@GetMapping
 	@Cacheable(value = "listaDeTopicos")
+	@PreAuthorize("isAuthenticated()")
 	public Page<TopicoDto> lista(@RequestParam(required = false) String nomeCurso,
 			@PageableDefault(sort = "dataCriacao", direction = Direction.DESC, page = 0, size = 10) Pageable paginacao) {
-
-
-
 		if (nomeCurso == null) {
 			Page<Topico> topicos = topicoRepository.findAll(paginacao);
 			return TopicoDto.converter(topicos);
@@ -72,6 +71,7 @@ public class TopicosController {
 	}
 
 	@GetMapping("/{id}")
+	@PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
 	public ResponseEntity<DetalhesDoTopicoDto> detalhar(@PathVariable Long id) {
 		Optional<Topico> topico = topicoRepository.findById(id);
 		if (topico.isPresent()) {
